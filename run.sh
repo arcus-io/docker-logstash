@@ -1,10 +1,10 @@
 #!/bin/bash
 CFG=${CFG:-}
-ES_HOST=${ES_HOST:-}
+ES_HOST=${ES_HOST:-127.0.0.1}
 ES_PORT=${ES_PORT:-9300}
 EMBEDDED="false"
 
-if [ -z "$ES_HOST" ] ; then
+if [ "$ES_HOST" = "127.0.0.1" ] ; then
     EMBEDDED="true"
 fi
 
