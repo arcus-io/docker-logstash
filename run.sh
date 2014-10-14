@@ -1,8 +1,11 @@
 #!/bin/bash
 CFG=${CFG:-}
 ES_HOST=${ES_HOST:-127.0.0.1}
+ES_HTTP_PORT=${ES_HTTP_PORT:-9200}
 ES_PORT=${ES_PORT:-9300}
 EMBEDDED="false"
+ENABLE_WEB=${ENABLE_WEB:-}
+LOGSTASH_ROOT=/opt/logstash
 
 if [ "$ES_HOST" = "127.0.0.1" ] ; then
     EMBEDDED="true"
@@ -19,7 +22,7 @@ input {
   }
 }
 output {
-  stdout { debug => true debug_format => "json"}
+  stdout { }
 EOF
     if [ "$EMBEDDED" = "true" ]; then
         cat << EOF >> /opt/logstash.conf
@@ -34,4 +37,9 @@ EOF
    fi
 fi
 
-java -jar /opt/logstash.jar agent -f /opt/logstash.conf -- web --backend elasticsearch://$ES_HOST:$ES_PORT/
+# configure elasticsearch in kibana
+sed -i "s/\s.elasticsearch:.*/     elasticsearch: \"http:\/\/$ES_HOST:$ES_HTTP_PORT\",/g" $LOGSTASH_ROOT/vendor/kibana/config.js
+if [ ! -z "$ENABLE_WEB" ]; then
+    $LOGSTASH_ROOT/bin/logstash web &
+fi
+$LOGSTASH_ROOT/bin/logstash agent -f /opt/logstash.conf
